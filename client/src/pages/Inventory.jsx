@@ -1,15 +1,34 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Search, Plus, Package } from 'lucide-react';
+import { Search, Plus, Package, Filter, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { exportToCSV } from '../utils/exportCsv';
 
 const Inventory = () => {
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ productName: '', sku: '', quantity: '', price: '', warehouseId: '', supplierId: '' });
+  const [warehousesList, setWarehousesList] = useState([]);
+  const [suppliersList, setSuppliersList] = useState([]);
 
   useEffect(() => {
     fetchInventory();
+    fetchDropdownData();
   }, []);
+
+  const fetchDropdownData = async () => {
+    try {
+      const wRes = await api.get('/warehouses');
+      const sRes = await api.get('/suppliers');
+      setWarehousesList(wRes.data);
+      setSuppliersList(sRes.data);
+    } catch (error) {
+      console.error('Failed to load dropdown data', error);
+    }
+  };
 
   const fetchInventory = async () => {
     try {
@@ -22,16 +41,97 @@ const Inventory = () => {
     }
   };
 
+  const handleAddInventory = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/inventory', {
+        ...formData,
+        quantity: parseInt(formData.quantity, 10),
+        price: parseFloat(formData.price)
+      });
+      toast.success('Item added successfully!');
+      setShowModal(false);
+      setFormData({ productName: '', sku: '', quantity: '', price: '', warehouseId: '', supplierId: '' });
+      fetchInventory();
+    } catch (error) {
+      toast.error('Failed to add item');
+    }
+  };
+
+  const filteredInventory = inventory.filter(item => 
+    item.productName.toLowerCase().includes(search.toLowerCase()) || 
+    item.sku.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-textMain">Inventory Management</h1>
-          <p className="text-textMuted text-sm">Track products across warehouses</p>
+    <div className="space-y-6 relative">
+      {/* Add Inventory Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
+          <div className="card w-full max-w-lg glass animate-slide-up border-primary/20 relative">
+            <h2 className="text-2xl font-bold text-textMain mb-4">Add Inventory Item</h2>
+            <form onSubmit={handleAddInventory} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-sm text-textMuted mb-1">Product Name</label>
+                  <input type="text" required className="input-field" placeholder="MacBook Pro M3" 
+                    value={formData.productName} onChange={e => setFormData({...formData, productName: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">SKU</label>
+                  <input type="text" required className="input-field" placeholder="SKU-123" 
+                    value={formData.sku} onChange={e => setFormData({...formData, sku: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Price ($)</label>
+                  <input type="number" step="0.01" required className="input-field" placeholder="1999.99" 
+                    value={formData.price} onChange={e => setFormData({...formData, price: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Quantity</label>
+                  <input type="number" required className="input-field" placeholder="50" 
+                    value={formData.quantity} onChange={e => setFormData({...formData, quantity: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Warehouse</label>
+                  <select required className="input-field" value={formData.warehouseId} onChange={e => setFormData({...formData, warehouseId: e.target.value})}>
+                    <option value="">Select Warehouse...</option>
+                    {warehousesList.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm text-textMuted mb-1">Supplier</label>
+                  <select required className="input-field" value={formData.supplierId} onChange={e => setFormData({...formData, supplierId: e.target.value})}>
+                    <option value="">Select Supplier...</option>
+                    {suppliersList.map(s => <option key={s.id} value={s.id}>{s.name} ({s.company})</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-4 mt-6 pt-4 border-t border-border">
+                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" className="btn-primary flex-1">Save Item</button>
+              </div>
+            </form>
+          </div>
         </div>
-        <button className="btn-primary flex items-center gap-2">
-          <Plus size={18} /> Add Item
-        </button>
+      )}
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-textMain">Inventory</h1>
+          <p className="text-textMuted text-sm mt-1">Manage stock across all locations</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={() => exportToCSV(inventory, 'inventory_report')} className="btn-secondary flex items-center gap-2">
+            <Download size={18} /> Export CSV
+          </button>
+          <button className="btn-secondary flex items-center gap-2">
+            <Filter size={18} /> Filters
+          </button>
+          <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+            <Plus size={18} /> Add Item
+          </button>
+        </div>
       </div>
 
       <div className="card p-0 overflow-hidden">

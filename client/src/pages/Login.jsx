@@ -70,28 +70,6 @@ const Login = () => {
           <button type="submit" className="btn-primary w-full py-3 mt-4 flex justify-center items-center gap-2">
             Sign In
           </button>
-          
-          <div className="relative flex py-2 items-center">
-            <div className="flex-grow border-t border-border"></div>
-            <span className="flex-shrink-0 mx-4 text-textMuted text-sm">or</span>
-            <div className="flex-grow border-t border-border"></div>
-          </div>
-
-          <button 
-            type="button" 
-            onClick={() => {
-              setEmail('admin@logistics.com');
-              setPassword('admin123');
-              // Automatically submit the form
-              setTimeout(() => {
-                const fakeEvent = { preventDefault: () => {} };
-                handleSubmit(fakeEvent);
-              }, 100);
-            }}
-            className="btn-secondary w-full py-3 flex justify-center items-center gap-2 border-primary text-primary hover:bg-primary/10"
-          >
-            Sign in as Demo Admin
-          </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-textMuted">

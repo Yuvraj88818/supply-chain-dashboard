@@ -7,6 +7,9 @@ const Warehouses = () => {
   const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ name: '', location: '', capacity: '', currentLoad: '' });
+
   useEffect(() => {
     fetchWarehouses();
   }, []);
@@ -22,15 +25,71 @@ const Warehouses = () => {
     }
   };
 
+  const handleAddWarehouse = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/warehouses', {
+        ...formData,
+        capacity: parseInt(formData.capacity, 10),
+        currentLoad: parseInt(formData.currentLoad, 10)
+      });
+      toast.success('Warehouse added successfully!');
+      setShowModal(false);
+      setFormData({ name: '', location: '', capacity: '', currentLoad: '' });
+      fetchWarehouses();
+    } catch (error) {
+      toast.error('Failed to add warehouse');
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center text-textMuted">Loading...</div>;
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 relative">
+      {/* Add Warehouse Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
+          <div className="card w-full max-w-lg glass animate-slide-up border-primary/20 relative">
+            <h2 className="text-2xl font-bold text-textMain mb-4">Add New Warehouse</h2>
+            <form onSubmit={handleAddWarehouse} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Warehouse Name</label>
+                  <input type="text" required className="input-field" placeholder="Dallas Hub" 
+                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Location</label>
+                  <input type="text" required className="input-field" placeholder="Texas, USA" 
+                    value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Total Capacity</label>
+                  <input type="number" required className="input-field" placeholder="10000" 
+                    value={formData.capacity} onChange={e => setFormData({...formData, capacity: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Current Load</label>
+                  <input type="number" required className="input-field" placeholder="0" 
+                    value={formData.currentLoad} onChange={e => setFormData({...formData, currentLoad: e.target.value})} />
+                </div>
+              </div>
+              <div className="flex gap-4 mt-6 pt-4 border-t border-border">
+                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" className="btn-primary flex-1">Save Warehouse</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-textMain">Warehouses</h1>
-          <p className="text-textMuted text-sm">Manage storage facilities and capacity</p>
+          <p className="text-textMuted text-sm mt-1">Manage global distribution centers</p>
         </div>
-        <button className="btn-primary flex items-center gap-2">
-          <Plus size={18} /> Add Warehouse
+        <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+          <Plus size={18} /> New Warehouse
         </button>
       </div>
 

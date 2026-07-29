@@ -135,25 +135,47 @@ const getDashboard = async (req, res) => {
     const delayedShipments = await prisma.shipment.count({ where: { status: 'Delayed' } });
     const inventoryItems = await prisma.inventory.count();
 
+    const latestShipments = await prisma.shipment.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: { warehouse: true, supplier: true }
+    });
+
     res.json({
       totalSuppliers, activeSuppliers, totalWarehouses, totalShipments,
-      pendingShipments, deliveredShipments, delayedShipments, inventoryItems
+      pendingShipments, deliveredShipments, delayedShipments, inventoryItems,
+      recentActivity: latestShipments
     });
   } catch (error) { res.status(500).json({ error: error.message }); }
 };
 
 const getAnalytics = async (req, res) => {
   try {
-    // Mock analytics logic (can aggregate from actual data)
-    const monthlyDeliveries = [
-      { name: 'Jan', deliveries: 400 },
-      { name: 'Feb', deliveries: 300 },
-      { name: 'Mar', deliveries: 550 },
-      { name: 'Apr', deliveries: 480 },
-      { name: 'May', deliveries: 600 },
-      { name: 'Jun', deliveries: 700 },
-    ];
-    
+    const allShipments = await prisma.shipment.findMany({
+      orderBy: { estimatedDelivery: 'asc' }
+    });
+
+    // Group by month
+    const monthCounts = {
+      'Jan': 0, 'Feb': 0, 'Mar': 0, 'Apr': 0, 'May': 0, 'Jun': 0,
+      'Jul': 0, 'Aug': 0, 'Sep': 0, 'Oct': 0, 'Nov': 0, 'Dec': 0
+    };
+
+    allShipments.forEach(s => {
+      if (s.estimatedDelivery) {
+        const date = new Date(s.estimatedDelivery);
+        const monthName = date.toLocaleString('default', { month: 'short' });
+        if (monthCounts[monthName] !== undefined) {
+          monthCounts[monthName]++;
+        }
+      }
+    });
+
+    const monthlyDeliveries = Object.keys(monthCounts).map(name => ({
+      name,
+      deliveries: monthCounts[name]
+    })).filter(m => m.deliveries > 0 || ['Jan','Feb','Mar','Apr','May','Jun'].includes(m.name)); // keep at least 6 months for UI
+
     res.json({
       monthlyDeliveries
     });

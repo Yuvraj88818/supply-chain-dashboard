@@ -1,15 +1,29 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Plus, Navigation } from 'lucide-react';
+import { Plus, Navigation, Filter, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { exportToCSV } from '../utils/exportCsv';
 
 const Shipments = () => {
   const [shipments, setShipments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ trackingId: '', originId: '', destination: '', status: 'Pending', estimatedDelivery: '', priority: 'Standard' });
+  const [warehousesList, setWarehousesList] = useState([]);
 
   useEffect(() => {
     fetchShipments();
+    fetchDropdownData();
   }, []);
+
+  const fetchDropdownData = async () => {
+    try {
+      const wRes = await api.get('/warehouses');
+      setWarehousesList(wRes.data);
+    } catch (error) {
+      console.error('Failed to load warehouses', error);
+    }
+  };
 
   const fetchShipments = async () => {
     try {
@@ -19,6 +33,19 @@ const Shipments = () => {
       toast.error('Failed to load shipments');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddShipment = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/shipments', formData);
+      toast.success('Shipment created successfully!');
+      setShowModal(false);
+      setFormData({ trackingId: '', originId: '', destination: '', status: 'Pending', estimatedDelivery: '', priority: 'Standard' });
+      fetchShipments();
+    } catch (error) {
+      toast.error('Failed to create shipment');
     }
   };
 
@@ -32,15 +59,70 @@ const Shipments = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6 relative">
+      {/* Add Shipment Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in">
+          <div className="card w-full max-w-lg glass animate-slide-up border-primary/20 relative">
+            <h2 className="text-2xl font-bold text-textMain mb-4">Create Shipment</h2>
+            <form onSubmit={handleAddShipment} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Tracking ID</label>
+                  <input type="text" required className="input-field" placeholder="TRK-987654" 
+                    value={formData.trackingId} onChange={e => setFormData({...formData, trackingId: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Origin Warehouse</label>
+                  <select required className="input-field" value={formData.originId} onChange={e => setFormData({...formData, originId: e.target.value})}>
+                    <option value="">Select Origin...</option>
+                    {warehousesList.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm text-textMuted mb-1">Destination</label>
+                  <input type="text" required className="input-field" placeholder="123 Customer St, City, Country" 
+                    value={formData.destination} onChange={e => setFormData({...formData, destination: e.target.value})} />
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Priority</label>
+                  <select required className="input-field" value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})}>
+                    <option value="Standard">Standard</option>
+                    <option value="Express">Express</option>
+                    <option value="Overnight">Overnight</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-textMuted mb-1">Estimated Delivery</label>
+                  <input type="date" required className="input-field" 
+                    value={formData.estimatedDelivery} onChange={e => setFormData({...formData, estimatedDelivery: e.target.value})} />
+                </div>
+              </div>
+              <div className="flex gap-4 mt-6 pt-4 border-t border-border">
+                <button type="button" onClick={() => setShowModal(false)} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" className="btn-primary flex-1">Create Shipment</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-textMain">Shipments</h1>
-          <p className="text-textMuted text-sm">Monitor all incoming and outgoing shipments</p>
+          <p className="text-textMuted text-sm mt-1">Track inbound and outbound deliveries</p>
         </div>
-        <button className="btn-primary flex items-center gap-2">
-          <Plus size={18} /> New Shipment
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => exportToCSV(shipments, 'shipments_report')} className="btn-secondary flex items-center gap-2">
+            <Download size={18} /> Export CSV
+          </button>
+          <button className="btn-secondary flex items-center gap-2">
+            <Filter size={18} /> Filters
+          </button>
+          <button onClick={() => setShowModal(true)} className="btn-primary flex items-center gap-2">
+            <Plus size={18} /> New Shipment
+          </button>
+        </div>
       </div>
 
       <div className="card p-0 overflow-hidden">

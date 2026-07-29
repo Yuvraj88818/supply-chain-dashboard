@@ -9,6 +9,7 @@ const Suppliers = () => {
   const [search, setSearch] = useState('');
 
   const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ name: '', company: '', email: '', country: '', status: 'Active' });
 
   useEffect(() => {
     fetchSuppliers();
@@ -27,8 +28,15 @@ const Suppliers = () => {
 
   const handleAddSupplier = async (e) => {
     e.preventDefault();
-    toast.success('Supplier added successfully! (Demo Mode)');
-    setShowModal(false);
+    try {
+      await api.post('/suppliers', formData);
+      toast.success('Supplier added successfully!');
+      setShowModal(false);
+      setFormData({ name: '', company: '', email: '', country: '', status: 'Active' });
+      fetchSuppliers();
+    } catch (error) {
+      toast.error('Failed to add supplier');
+    }
   };
 
   const filteredSuppliers = suppliers.filter(s => 
@@ -47,19 +55,23 @@ const Suppliers = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-textMuted mb-1">Company Name</label>
-                  <input type="text" required className="input-field" placeholder="Acme Corp" />
+                  <input type="text" required className="input-field" placeholder="Acme Corp" 
+                    value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} />
                 </div>
                 <div>
                   <label className="block text-sm text-textMuted mb-1">Contact Person</label>
-                  <input type="text" required className="input-field" placeholder="John Doe" />
+                  <input type="text" required className="input-field" placeholder="John Doe" 
+                    value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                 </div>
                 <div>
                   <label className="block text-sm text-textMuted mb-1">Email</label>
-                  <input type="email" required className="input-field" placeholder="contact@acme.com" />
+                  <input type="email" required className="input-field" placeholder="contact@acme.com" 
+                    value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
                 </div>
                 <div>
                   <label className="block text-sm text-textMuted mb-1">Country</label>
-                  <input type="text" required className="input-field" placeholder="USA" />
+                  <input type="text" required className="input-field" placeholder="USA" 
+                    value={formData.country} onChange={e => setFormData({...formData, country: e.target.value})} />
                 </div>
               </div>
               <div className="flex gap-4 mt-6 pt-4 border-t border-border">

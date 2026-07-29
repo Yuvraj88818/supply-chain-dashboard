@@ -36,11 +36,11 @@ const Landing = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-            <Link to="/register" className="btn-primary text-lg px-8 py-4 flex items-center justify-center gap-2">
-              Start Free Trial <ArrowRight size={20} />
+            <Link to="/login" className="btn-primary text-lg px-8 py-4 flex items-center justify-center gap-2">
+              Sign In <ArrowRight size={20} />
             </Link>
-            <Link to="/login" className="btn-secondary text-lg px-8 py-4">
-              Live Demo
+            <Link to="/register" className="btn-secondary text-lg px-8 py-4">
+              Sign Up
             </Link>
           </div>
         </div>

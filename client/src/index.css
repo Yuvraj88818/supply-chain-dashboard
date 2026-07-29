@@ -58,3 +58,31 @@
 .recharts-tooltip-wrapper {
   outline: none !important;
 }
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .sidebar, nav, header {
+    display: none !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .card {
+    border: 1px solid #ccc !important;
+    background: white !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    margin-bottom: 20px;
+    color: black !important;
+  }
+
+  .text-textMain, .text-textMuted, h1, h3, p {
+    color: black !important;
+  }
+}

@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
 } from 'recharts';
-import { Users, Warehouse, Truck, Box, PackageCheck, AlertCircle } from 'lucide-react';
+import { Users, Warehouse, Truck, Box, PackageCheck, AlertCircle, Activity, ArrowRight, Printer } from 'lucide-react';
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
@@ -64,12 +64,14 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 print:hidden">
         <div>
           <h1 className="text-2xl font-bold text-textMain">Overview</h1>
           <p className="text-textMuted text-sm">Welcome to the supply chain command center.</p>
         </div>
-        <button className="btn-primary">Generate Report</button>
+        <button onClick={() => window.print()} className="btn-primary flex items-center gap-2">
+          <Printer size={18} /> Generate Report
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -161,6 +163,37 @@ const Dashboard = () => {
               </AreaChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      </div>
+
+      {/* Recent Activity Feed */}
+      <div className="card mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-textMain flex items-center gap-2">
+            <Activity className="text-primary" size={20} /> Live Activity Feed
+          </h3>
+        </div>
+        <div className="space-y-4">
+          {stats?.recentActivity && stats.recentActivity.length > 0 ? (
+            stats.recentActivity.map((activity, idx) => (
+              <div key={idx} className="flex items-start gap-4 p-3 rounded-lg hover:bg-surface/50 transition-colors">
+                <div className="w-2 h-2 mt-2 rounded-full bg-primary animate-pulse"></div>
+                <div className="flex-1">
+                  <p className="text-textMain font-medium">
+                    New Shipment Created: <span className="text-primary">{activity.trackingId}</span>
+                  </p>
+                  <p className="text-sm text-textMuted">
+                    From {activity.warehouse?.name} to {activity.destination}
+                  </p>
+                </div>
+                <span className="text-xs text-textMuted bg-surface px-2 py-1 rounded-full">
+                  {new Date(activity.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="text-textMuted text-sm text-center py-4">No recent activity detected.</p>
+          )}
         </div>
       </div>
     </div>
