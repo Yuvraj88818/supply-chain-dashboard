@@ -52,6 +52,3 @@ The Supply Chain Dashboard provides a centralized interface for tracking invento
 
 The application follows a standard client-server architecture. The frontend is entirely decoupled from the backend, communicating exclusively via REST API endpoints. Prisma was chosen as the ORM to ensure type safety and rapid schema iteration. The UI was designed with a focus on usability and data density, utilizing a custom design system built on top of Tailwind CSS.
 
-## License
-
-This project is open-source and available under the MIT License.
