@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-textMain antialiased overflow-x-hidden;
+    /* Force dark mode background and text color globally */
+    background-color: #0F172A; /* Slate 900 */
+    color: #F8FAFC; /* Slate 50 */
+  }
+
+  /* Custom Scrollbar for a premium feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  .btn-secondary {
+    @apply bg-surface border border-border hover:bg-slate-700 text-textMain font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  .btn-danger {
+    @apply bg-danger hover:bg-red-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 focus:ring-offset-background;
+  }
+  
+  .input-field {
+    @apply bg-surface border border-border text-textMain rounded-lg px-4 py-2 w-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors;
+  }
+
+  .card {
+    @apply bg-surface border border-border rounded-xl p-6 shadow-lg shadow-black/20;
+  }
+
+  /* Premium Glassmorphism for specific elements if needed */
+  .glass {
+    @apply bg-surface/80 backdrop-blur-md border border-white/10;
+  }
+}
+
+/* Recharts Custom Tooltip overrides */
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}
